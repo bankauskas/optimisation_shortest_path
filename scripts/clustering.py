@@ -1,66 +1,120 @@
+import numpy                    as np
 import os
 import pandas                   as pd
-import matplotlib.pyplot        as plt
+
+from sklearn.metrics            import silhouette_score
+from sklearn.model_selection    import ParameterGrid
+from sklearn.cluster            import DBSCAN
+
+
 import numpy                    as np
-import itertools
+import os
+import pandas                   as pd
 
-from sklearn                    import cluster
-from sklearn                    import mixture
-from collections                import defaultdict
-from sklearn.metrics.cluster    import normalized_mutual_info_score
-from sklearn.metrics.cluster    import adjusted_rand_score
+from sklearn.metrics            import silhouette_score
+from sklearn.model_selection    import ParameterGrid
+from sklearn.cluster            import DBSCAN
 
-from sklearn.metrics.pairwise   import euclidean_distances
-from sklearn.metrics.pairwise   import cosine_distances
-from sklearn.metrics.pairwise   import manhattan_distances
 
-from sklearn                    import metrics
-from sklearn.preprocessing      import StandardScaler
-from sklearn.model_selection    import GridSearchCV
+def transform_label(function):
+    """
+    >> input = [0, 0, 1, 0]
+    (This Is clustering results for components of furniture.)
+    ---------------------------------------------------------------------------
+    >> output = [0, 0, 1, 1]
+    (Wee change some cluster because its can't be difference in sesame 
+    furniture.)
+    ---------------------------------------------------------------------------
+    * this function requires global variables <bom> , <idx>
+    """
+    def wrapped_item(*args, **kwargs):
+              
+        clusters = pd.DataFrame({
+            'child': idx, 
+            'cluster': function(*args, **kwargs)
+            })
+
+        df = bom.merge(clusters, how='inner', on='child')\
+            .groupby(['parent', 'cluster'], sort = False)['cluster']\
+            .apply(lambda x: (x>=0).sum())\
+            .reset_index(name='counts')  
+  
+        imax = df\
+            .groupby(['parent'], sort = False)['counts']\
+            .transform(max) == df['counts']
+            
+        df = df[imax].merge(bom, how='inner', on='parent')
+        
+        return clusters.merge(df, how='left', on='child').values
+    return wrapped_item
+
+
+@ transform_label
+def model(model, options):
+    """
+    >> input:   model = any clustering model;
+                options = {x:y}
+    ---------------------------------------------------------------------------
+    >> output = [0, 0, 1, 2]
+    ---------------------------------------------------------------------------
+    * this function requires global variable <values> 
+    """ 
+    return model.set_params(**options).fit(values).labels_
+
+
+# def silhoute_score(label):
+#     n_clusters_ = len(np.unique(label))
+#     return silhouette_score(values, label) if n_clusters_ != 0 else -1
+__file__ = 'Clusterization.ipynb'
+__path__ = os.path.dirname(os.path.realpath(__file__))
+os.chdir(__path__)
+
+data = pd.read_csv('../output/data_nm.csv').set_index('Product')
+bom = pd.read_csv('../input/data_bom.csv', usecols=['parent', 'child'])
+
+values = data.values
+idx = data.index.values
+
+
+md = DBSCAN(n_jobs=-1)
+op = {'eps':1, 'min_samples': 8}
+x = model(md, op)
+z = 1
+
+
+
+
+def n_clusters_(label):
+    return len(np.unique(label))
+
+
+def scoring(metrics, label):
+    return [measure(label, values) for measure in metrics]
+
+
+def grid_search(model, param_grid, metrics):
+    return {
+            params: scoring(metrics, model(model, params)) 
+            for params in ParameterGrid(param_grid)
+        }
+
 
 __path__ = os.path.dirname(os.path.realpath(__file__))
 os.chdir(__path__)
 
-def split_grid(parameters_grid):
-    """Input: {x:[y]}, Output: [{x:y}]"""
-    return [list_of_toople_to_dic([*zip(parameters_grid.keys(), values)]) 
-            for values 
-            in [*itertools.product(*parameters_grid.values())]]        
-        
-def list_of_toople_to_dic(values):
-    """Input: [(x,y)], Output: {x:y}"""
-    return {key:value for key, value in values}
+data = pd.read_csv('../output/data_nm.csv').set_index('Product')
+bom = pd.read_csv('../input/data_bom.csv', usecols=['parent', 'child'])
 
-def add_metrics(labels, values):
-    
-    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    return {
-        'Estimated number of clusters' : n_clusters_,
-        'Silhouette Coefficient' : metrics.silhouette_score(df.values, labels) if n_clusters_ != 0 else -1
-    }
+values = data.values
+idx = data.index.values
 
-df = pd.read_csv('../output/data_nm.csv').set_index('Product')
+param_grid = ParameterGrid(dict(
+    eps=np.arange(0.1, 1.1, 0.2),
+    min_samples = np.arange(1, 21, 2)
+))
 
-kClusters = 8
-idx = list(df.index.values)
-results = {'Product': idx}
+DBSCAN_model = DBSCAN(n_jobs=-1)
 
-parameters_grid = dict(
-    eps=np.arange(0.1, 1.1, 0.1),
-    min_samples = np.arange(1, 21, 1)
-) 
+metrics = [n_clusters_]
 
-metrics_results_grid = {}
-
-for parameters in split_grid(parameters_grid):
-
-    model = cluster.DBSCAN(n_jobs=-1, **parameters).fit(df.values)
-    metrics_results_grid.setdefault('Parameters', []).append(parameters)
-    metrics_results = add_metrics(model.labels_, df.values)
-
-    for metric in metrics_results:
-        metrics_results_grid.setdefault(metric, [])\
-        .append(metrics_results[metric])
-
-
-x=1
+x = grid_search(DBSCAN_model, param_grid, metrics)

@@ -1,12 +1,17 @@
-import numpy                    as np
+import numpy as np
 import os
-import pandas                   as pd
+import pandas as pd
+import scipy as sp
 
+from TSP_solver.algorithms.TwoOpt import * 
 
-from sklearn.metrics            import silhouette_score
-from sklearn.model_selection    import ParameterGrid
-from sklearn.cluster            import DBSCAN
-from BranchNBound import *
+from sklearn.metrics import silhouette_score
+from sklearn.model_selection import ParameterGrid
+from sklearn.cluster import DBSCAN
+
+from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import manhattan_distances
+from sklearn.metrics.pairwise import cosine_distances
 
 
 def transformLabel(function):
@@ -18,33 +23,81 @@ def transformLabel(function):
     (Wee change some cluster because its can't be difference in sesame 
     furniture.)
     ---------------------------------------------------------------------------
-    * this function requires global variables <bom> , <idx>
+    *   this function requires global variables <bom> , <idx> as dict
+        <model_name> as string, <parameters_name> as string
     """
     def wrappedItem(*args, **kwargs):
-              
+        start = time.clock()
+        # Create dictionary {idx:label}      
         clusters = pd.DataFrame({
             'child': idx, 
             'cluster': function(*args, **kwargs)
             })
 
+        # group by parent and clusters
         df = bom.merge(clusters, how='inner', on='child')\
-            .groupby(['parent', 'cluster'], sort = False)['cluster']\
-            .apply(lambda x: (x>=0).sum())\
-            .reset_index(name='counts')  
-  
+            .groupby(['parent', 'cluster'], sort=False)['cluster']\
+            .apply(lambda x: (x >= 0).sum())\
+            .reset_index(name='counts') 
+
+        # find main cluster for parrent
         imax = df\
-            .groupby(['parent'], sort = False)['counts']\
+            .groupby(['parent'], sort=False)['counts']\
             .transform(max) == df['counts']
-            
-        df = df[imax].merge(bom, how='inner', on='parent')
-        #df.to_csv('../output/data/labels/{0}__{1}.csv'.format(1,2))
-        
-        return clusters.merge(df, how='left', on='child').values
+ 
+        # filter main cluster and join with BOM
+        df = df.loc[imax[imax == True].index.values]\
+            .merge(bom, how='inner', on='parent')
+
+        # return results to main sequence 
+        df = clusters.merge(df, how='inner', on='child')
+
+        # find main cluster for child
+        imax = df\
+            .groupby(['child'], sort=False)['counts']\
+            .transform(max) == df['counts']
+
+        # filter main cluster
+        df = df.loc[imax[imax == True].index.values]
+        df = df.drop_duplicates(subset=['child'], keep='first')    
+
+        global model_name 
+        model_name = args[0].__class__.__name__
+
+        global parameters_name
+        parameters_name = str(args[1])\
+                .replace(': ', '_')\
+                .replace("'", "")\
+                .replace("{", "")\
+                .replace("}", "")
+
+        directory = '../output/models/{}'.format(model_name)
+
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+        subDirectory = directory + '/{}'.format(parameters_name)
+
+        if not os.path.exists(subDirectory):
+            os.makedirs(subDirectory)
+
+        time_finish = time.clock() - start
+
+        ClusteringResults['Model'].append(model_name)
+        ClusteringResults['Parameters'].append(parameters_name)
+        ClusteringResults['Clustering time'].append(time_finish)
+
+        # save clusterisation results
+        df.drop(['parent', 'counts'], axis=1)\
+            .set_index('child')\
+            .to_csv(subDirectory + '/labels.csv')
+     
+        return clusters.merge(df, how='left', on='child')['cluster_y'].values
     return wrappedItem
 
 
 @ transformLabel
-def model(model, options):
+def model(model_, options):
     """
     >> input:   model = any clustering model;
                 options = {x:y}
@@ -53,10 +106,10 @@ def model(model, options):
     ---------------------------------------------------------------------------
     * this function requires global variable <values> 
     """ 
-    return model.set_params(**options).fit(values).labels_
+    return model_.set_params(**options).fit(values).labels_
 
 
-def silhouetteScore(label):
+def silhouetteScore(labels, **parameters):
     """
     The best value is 1 and the worst value is -1. Values near 0 indicate 
     overlapping clusters. Negative values generally indicate that a sample has
@@ -68,38 +121,41 @@ def silhouetteScore(label):
     ---------------------------------------------------------------------------
     * this function requires global variable <values> 
     """
-    n_clusters_ = len(np.unique(label))
-    return silhouette_score(values, label) if n_clusters_ != 0 else -1
+    n_clusters = n_clusters_(labels, **{})
+    ClusteringResults['N clusters'].append(n_clusters)
+
+    x = silhouette_score(values, labels) if int(n_clusters) > 1 else -1
+    ClusteringResults['Silhouette Score'].append(x)
+    return x
 
 
-def n_clusters_(label):
+def n_clusters_(labels, **parameters):
     """
     Function returns number of clusters unique elements in list.
 
     >> input:   [0, 0, 1, 2] as list
     ---------------------------------------------------------------------------
     >> output:  3 as int
-    """
-    return len(np.unique(label))
+    ---------------------------------------------------------------------------
+    """   
+    return len(np.unique(labels))
 
 
-def scoring(metrics, label):
+def scoring(metrics, labels):
     """
     Function returns list of calculated metrics.
 
-    >> input:   metrics = [<function>] as list
+    >> input:   metrics = [(<function>, {parameters})] as list
                 labels = [0, 0, 1, 2] as list
     ---------------------------------------------------------------------------
     >> output:  [1] as list
     """
-    return [measure(label) for measure in metrics]
+    return [function(labels, **parameters) for function, parameters in metrics]
 
 
-def gridSearch(model, param_grid, metrics):
-    return {
-            params: scoring(metrics, model(model, params)) 
-            for params in ParameterGrid(param_grid)
-        }
+def gridSearch(model_, param_grid, metrics):
+
+    return {str(params): scoring(metrics, model(model_, params)) for params in ParameterGrid(param_grid)}
 
 
 def Tree(labels):
@@ -111,47 +167,96 @@ def Tree(labels):
     ---------------------------------------------------------------------------
     * this function requires global variable <idx> 
     """ 
-    d={}
-    return {d.setdefault(cluster,[]).append(name) for cluster, name in zip(idx,labels)}
+    dTree = {}
+    for cluster, name in zip(labels, idx):
+        dTree.setdefault(cluster, []).append(name)
+
+    return dTree
 
 
-def BranchNBound_(labels):
+def ShortestPath(labels, function):
     """
-    This loop for each cluster to callculate sho
+    This loop for each cluster to calculate shortest path
     >> input:   labels = [0, 1, 0, 1] as list;
     ---------------------------------------------------------------------------
     >> output:  Saves results of branch and bound algorithm;
     """ 
-    tree =  Tree(labels)
-    results = []
+
+    tree = Tree(labels)
+    results = {}
     for cluster in tree:
-        subData = data[tree[cluster]]
-        subValues = subData.values
+        subData = data.loc[tree[cluster]]
         subIdx = subData.index.values
-        results.append(BranchNBound(subValues) + (subIdx,))
+        matrix = euclidean_distances(subData.values)
+        results_ = function(matrix)
+
+        results.setdefault('name', []).append(results_[0])
+        results.setdefault('cost', []).append(results_[1])  
+        results.setdefault('path', []).append(results_[2])  
+        results.setdefault('duration', []).append(results_[3])  
+        results.setdefault('path_idx', []).append(subIdx)         
+
+    directory = '../output/models/{}/{}/{}'\
+        .format(model_name, parameters_name, function.__name__)
+
+    if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    pd.DataFrame(results).to_csv(directory + '/results.csv')
+ 
+    return True
 
 
-
-
-
+def xfrange(start, stop, step, ndigits):
+    """
+    Generator to make float range
+    >> input:   start = 0.0 as float;
+                stop = 1.0 as float;
+                step = 0.1 as float;
+    ---------------------------------------------------------------------------
+    >> output:  [0.0, 0.1, 0,2 ...]
+    """
+    i = 0
+    while round(start + i * step, ndigits) < stop:
+        yield round(start + i * step, ndigits)
+        i += 1      
 
 __path__ = os.path.dirname(os.path.realpath(__file__))
 os.chdir(__path__)
 
-data = pd.read_csv('../output/data_nm.csv').set_index('Product')
-bom = pd.read_csv('../input/data_bom.csv', usecols=['parent', 'child'])
+data = pd.read_csv('../output/mungy/data2.csv').set_index('child')
+bom = pd.read_csv('../input/data_BOM.csv', usecols=['parent', 'child'])
 
 values = data.values
 idx = data.index.values
 
-param_grid = ParameterGrid(dict(
-    eps=np.arange(0.1, 1.1, 0.2),
-    min_samples = np.arange(1, 21, 2)
-))
+param_grid = dict(
+    eps=[*xfrange(0.1, 1.1, 0.2, 1)],
+    min_samples=[*xfrange(1, 21, 2, 1)]
+)
 
 DBSCAN_model = DBSCAN(n_jobs=-1)
 
-metrics = [n_clusters_, BranchNBound_]
+metrics = [
+    (n_clusters_, {}),
+    (silhouetteScore, {}), 
+    (ShortestPath, {'function': two_opt})
+]
+
+model_name = ''
+parameters_name = ''
+
+ClusteringResults = {
+    'Model':[],
+    'Parameters':[],
+    'Clustering time':[],
+    'N clusters':[],
+    'Silhouette Score':[]}
 
 dbscan = gridSearch(DBSCAN_model, param_grid, metrics)
+
+
+x = pd.DataFrame(ClusteringResults)
+pd.DataFrame(ClusteringResults).to_csv('../output/models/results.csv')
+
 dbscan.to_csv('../output/metrics/{}__{}.csv'.format('dbscan', '[n_clusters, gridSearch]'))

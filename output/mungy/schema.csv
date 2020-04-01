@@ -1,0 +1,81 @@
+DROP,TYPE,ID,NAME,CATEGORIES
+False,id,ID,Detalės ID,
+True,categorical,TYPE-1,Detalės tipas,7.0
+True,categorical,FAMILY,Gaminių šeima,4.0
+True,categorical,TYPE-2,Detalės tipas 2,3.0
+True,categorical,COLOR,Detalės spalva,5.0
+True,categorical,CAUNTRY,šalis (rinka kuriai skirti gaminiai),3.0
+False,continuous,L,Detalės ilgis,
+False,continuous,W,Detalės plotis,
+False,continuous,H,Detalės aukštis,
+False,binary,SINGLE,Dviguba/ Vienguba detalė,2.0
+True,binary,LIFT-1,Pakėlimo liftas (1),1.0
+False,binary,LIFT-2,Pakėlimo liftas (2),2.0
+False,binary,EDGE-H-RIGHT,Kraštų briaunavimas horizontalus (dešnė pusė),2.0
+False,binary,EDGE-H-LEFT,Kraštų briaunavimas horizontalus (kairė pusė),2.0
+True,binary,H-GROOVE,Horizontalus griovelis,2.0
+False,binary,H-CALIBRATION,Horizontalus kalibravimas,2.0
+False,binary,H-ROTATION,Horizontalus pasukimas,2.0
+False,binary,EDGE-V-RIGHT,Kraštų briaunavimas vertikalus (dešnė pusė),2.0
+False,binary,EDGE-V-LEFT,Kraštų briaunavimas vertikalus (kairė pusė),2.0
+True,binary,V-GROOVE,Vertikalus griovelis,1.0
+False,binary,V-CALIBRATION,Vertikalus kalibravimas,2.0
+False,binary,V-ROTATION,Vertikalus pasukimas,2.0
+False,binary,R15,Briaunos frezavimo profilis R15,2.0
+False,binary,R70,Briaunos frezavimo profilis R70,2.0
+False,binary,RXX,Briaunos frezavimo profilis RXX,2.0
+False,categorical,DRILL-1-0000,Gręžimo blokas 1 / Gręžimo galvos 0000 / špindelių skaičius,5.0
+False,categorical,DRILL-1-0016,Gręžimo blokas 1 / Gręžimo galvos 0016 / špindelių skaičius,7.0
+False,categorical,DRILL-1-0712,Gręžimo blokas 1 / Gręžimo galvos 0712 / špindelių skaičius,7.0
+True,categorical,DRILL-1-1318,Gręžimo blokas 1 / Gręžimo galvos 1318 / špindelių skaičius,1.0
+True,categorical,DRILL-1-1924,Gręžimo blokas 1 / Gręžimo galvos 1924 / špindelių skaičius,1.0
+False,categorical,DRILL-2-0000,Gręžimo blokas 2 / Gręžimo galvos 0000 / špindelių skaičius,6.0
+False,categorical,DRILL-2-0016,Gręžimo blokas 2 / Gręžimo galvos 0016 / špindelių skaičius,7.0
+False,categorical,DRILL-2-0712,Gręžimo blokas 2 / Gręžimo galvos 0712 / špindelių skaičius,7.0
+True,categorical,DRILL-2-1318,Gręžimo blokas 2 / Gręžimo galvos 1318 / špindelių skaičius,1.0
+True,categorical,DRILL-2-1924,Gręžimo blokas 2 / Gręžimo galvos 1924 / špindelių skaičius,1.0
+True,categorical,HOLES,Gręžimo angų skaičius,22.0
+False,binary,SPLITTER-1,Ruošinio dalinimo mašina (1),2.0
+False,binary,ADITIONAL_TABLE,Papildomas prailginimo stalas,2.0
+False,categorical,DRILL-EDGE-1,Gręžimas horizontalioje briaunoje ,4.0
+False,categorical,DRILL-EDGE-2,Gręžimas vertikalioje briaunoje ,7.0
+False,categorical,PLATES,Aukščio išlyginimo plokštelės,2.0
+False,categorical,ADITIONAL-HEAD,Specialiosios Gręžimo galvos,4.0
+False,categorical,RIBBING,Ribotuvas,4.0
+True,binary,SPLITTER-2,Ruošinio dalinimo mašina (2),1.0
+False,categorical,GROUP-0,Gręžimo grupė (1),3.0
+False,categorical,GROUP-1,Gręžimo grupė (2),5.0
+False,categorical,GROUP-2,Gręžimo grupė (3),10.0
+False,categorical,HEAD-X-1-0016,Gręžimo blokas 1 / Gręžimo galvos 0016-1 / Grąžto ilgis,7.0
+False,categorical,HEAD-X-1-0712,Gręžimo blokas 1 / Gręžimo galvos 0712-1 / Grąžto ilgis,7.0
+True,categorical,HEAD-X-1-1318,Gręžimo blokas 1 / Gręžimo galvos 1318-1 / Grąžto ilgis,1.0
+True,categorical,HEAD-X-1-1924,Gręžimo blokas 1 / Gręžimo galvos 1924-1 / Grąžto ilgis,1.0
+False,categorical,HEAD-X-2-0016,Gręžimo blokas 1 / Gręžimo galvos 0016-2 / Grąžto ilgis,7.0
+False,categorical,HEAD-X-2-0712,Gręžimo blokas 1 / Gręžimo galvos 0712-2 / Grąžto ilgis,7.0
+False,categorical,HEAD-X-2-1318,Gręžimo blokas 1 / Gręžimo galvos 1318-2 / Grąžto ilgis,2.0
+True,categorical,HEAD-X-2-1924,Gręžimo blokas 1 / Gręžimo galvos 1924-2 / Grąžto ilgis,1.0
+False,categorical,HEAD-Y-1-0016,Gręžimo blokas 2 / Gręžimo galvos 0016-1 / Grąžto ilgis,7.0
+False,categorical,HEAD-Y-1-0712,Gręžimo blokas 2 / Gręžimo galvos 0712-1 / Grąžto ilgis,7.0
+True,categorical,HEAD-Y-1-1318,Gręžimo blokas 2 / Gręžimo galvos 1318-1 / Grąžto ilgis,1.0
+True,categorical,HEAD-Y-1-1924,Gręžimo blokas 2 / Gręžimo galvos 1924-1 / Grąžto ilgis,1.0
+False,categorical,HEAD-Y-2-0016,Gręžimo blokas 2 / Gręžimo galvos 0016-2 / Grąžto ilgis,7.0
+False,categorical,HEAD-Y-2-0712,Gręžimo blokas 2 / Gręžimo galvos 0712-2 / Grąžto ilgis,7.0
+False,categorical,HEAD-Y-2-1318,Gręžimo blokas 2 / Gręžimo galvos 1318-2 / Grąžto ilgis,2.0
+True,categorical,HEAD-Y-2-1924,Gręžimo blokas 2 / Gręžimo galvos 1924-2 / Grąžto ilgis,1.0
+False,categorical,HEAD-1,Gręžimo galvos (1) tipas,12.0
+False,categorical,HEAD-2,Gręžimo galvos (2) tipas,12.0
+False,categorical,DRIL-1-PUT-UP,Grąžto bloko (1) atjungimas,8.0
+False,categorical,DRIL-2-PUT-UP,Grąžto bloko (2) atjungimas,9.0
+False,categorical,DRIL-1-SET-UP,Grąžto bloko (1) pajungimas,13.0
+False,categorical,DRIL-2-SET-UP,Grąžto bloko (2) pajungimas,16.0
+False,categorical,LIFT-1-SPEED,Pakėlimo lifto (1) greitis,15.0
+False,categorical,LIFT-1-TACT,Pakėlimo lifto (1) taktas,12.0
+False,categorical,EDGE-H-SPPED,Horizontalaus kraštų briaunavimo staklių greitis,16.0
+False,categorical,EDGE-H-TACT,Horizontalaus kraštų briaunavimo staklių taktas,12.0
+False,categorical,ROTATION-1-IN-SPEED,Pasukimo stalo (1) įėjimo greitis,16.0
+False,categorical,ROTATION-1-OUT-SPEED,Pasukimo stalo (1) išėjimo greitis,10.0
+False,categorical,EDGE-V-SPPED,Vertikalaus kraštų briaunavimo staklių greitis,9.0
+False,categorical,EDGE-V-TACT,Vertikalaus kraštų briaunavimo staklių taktas,13.0
+False,categorical,FIST,Prispaudimo kumščių skaičius,4.0
+False,categorical,ROTATION-2-IN-SPEED,Pasukimo stalo (2) įėjimo greitis,10.0
+False,categorical,ROTATION-2-OUT-SPEED,Pasukimo stalo (2) išėjimo greitis,14.0

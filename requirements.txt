@@ -1,0 +1,15 @@
+pandas
+numpy
+ipython
+hdbscan
+seaborn
+matplotlib
+plotly
+tabulate
+probscale
+sympy
+pytest
+scipy
+jupyter
+notebook
+kneed
